@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Get absolute path of script directory to source libraries securely
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/extractor.sh"
+source "$SCRIPT_DIR/../lib/analyzer.sh"
+
+usage() {
+    echo "Usage: $0 -i <path_to_pdf> -m <mode>"
+    echo "Modes:"
+    echo "  dates   - Extract and list dates (DD-MM-YYYY)"
+    echo "  phones  - Extract and list phone numbers"
+    echo "  words   - Display top word frequencies"
+    exit 1
+}
+
+PDF_FILE=""
+MODE=""
+
+while getopts "i:m:h" opt; do
+    case "$opt" in
+        i) PDF_FILE="$OPTARG" ;;
+        m) MODE="$OPTARG" ;;
+        h) usage ;;
+        *) usage ;;
+    esac
+done
+
+if [ -z "$PDF_FILE" ] || [ -z "$MODE" ]; then
+    echo "Error: Missing required arguments."
+    usage
+fi
+
+echo "[*] Step 1: Extracting text from PDF..."
+TXT_FILE=$(extract_text "$PDF_FILE")
+echo "[+] Text successfully extracted to: $TXT_FILE"
+
+echo ""
+echo "[*] Step 2: Analyzing text (Mode: $MODE)..."
+echo "=========================================="
+analyze_text "$TXT_FILE" "$MODE"
+echo "=========================================="
